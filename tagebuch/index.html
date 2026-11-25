@@ -33,6 +33,10 @@ button{font:inherit;color:inherit}
 .chg b{color:var(--ink);font-weight:500}
 .chart{position:relative;height:150px;margin:22px 0 8px}
 .chart.none{height:64px;margin-top:14px}
+.how{border-top:1px solid var(--line);margin-top:48px;padding-top:4px}
+.how ol{margin:0;padding-left:22px;display:grid;gap:10px;font-size:15px;color:var(--mute)}
+.how ol b{color:var(--ink);font-weight:500}
+.how p{font-size:13px;color:var(--dim);margin:20px 0 0}
 .tip{position:absolute;top:-6px;transform:translateX(-50%);background:var(--ink);color:#000;border-radius:10px;padding:5px 10px;font-size:13px;line-height:1.3;white-space:nowrap;pointer-events:none;display:none;z-index:2}
 .tip b{display:block;font-size:15px;font-weight:600}
 .chart{touch-action:pan-y;cursor:crosshair}
@@ -136,7 +140,7 @@ h2{font-size:20px;font-weight:600;letter-spacing:-.02em;margin:36px 0 10px}
 .slip ol b{font-weight:600;color:#000}
 .slip .pn{font-size:14px;color:#2a2a2e;margin:10px 0 0}
 .slip .add{background:#0a0a0b;color:#fff}
-@media(max-width:900px){.grid{grid-template-columns:minmax(0,1fr);gap:0}.side{position:static;margin-top:36px}}
+@media(max-width:900px){.grid>.left{display:contents}.side{order:2}.how{order:3}.grid{grid-template-columns:minmax(0,1fr);gap:0}.side{position:static;margin-top:36px}}
 @media(prefers-reduced-motion:reduce){.sheet,.toast{transition:none}}
 </style>
 </head>
@@ -154,7 +158,7 @@ h2{font-size:20px;font-weight:600;letter-spacing:-.02em;margin:36px 0 10px}
     <p class="pn" id="pNote" hidden></p>
   </section>
   <div class="grid">
-    <div>
+    <div class="left">
       <div class="lbl">Kontostand</div>
       <div class="bal num" id="bal">$5,000.00</div>
       <div class="chg num" id="chg"><b>$0.00</b> · 0.00 % seit Start</div>
@@ -170,6 +174,16 @@ h2{font-size:20px;font-weight:600;letter-spacing:-.02em;margin:36px 0 10px}
       <h2>Trades</h2>
       <div class="list" id="list"></div>
       <div class="save" id="store">Verbinde Speicher …</div>
+      <footer class="how">
+    <h2>So läuft's</h2>
+    <ol>
+      <li><b>Ab 16:00 Claude fragen.</b> Schreib „Scan den Markt“. Wenn ein Trade passt, erscheint oben dein Zettel.</li>
+      <li><b>Bei Alpaca abtippen.</b> Erst kaufen (Market, Buy), sofort danach den Stop setzen (Stop, Sell).</li>
+      <li><b>Spätestens 21:55 raus.</b> Ziel erreicht oder Zeit um: Stop löschen, dann verkaufen.</li>
+      <li><b>Eintragen.</b> Über den Zettel oder „Trade eintragen“. Dann steht er im Tagebuch und auf deiner Karte.</li>
+    </ol>
+    <p>Nur Spielgeld (Paper). Keine Anlageberatung. Die meisten Daytrader verlieren Geld, darum erst üben.</p>
+  </footer>
 
     </div>
     <div class="side">
