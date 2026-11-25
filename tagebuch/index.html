@@ -81,7 +81,7 @@ h2{font-size:20px;font-weight:600;letter-spacing:-.02em;margin:36px 0 10px}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;z-index:10}
 .scrim.open{display:block}
-.sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:min(560px,100%);background:var(--s1);border:1px solid var(--line);border-bottom:0;border-radius:22px 22px 0 0;padding:10px 20px max(20px,env(safe-area-inset-bottom));z-index:11;transition:transform .28s cubic-bezier(.2,.8,.2,1);max-height:92svh;overflow:auto;overscroll-behavior:contain;visibility:hidden}
+.sheet{touch-action:pan-y;position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:min(560px,100%);background:var(--s1);border:1px solid var(--line);border-bottom:0;border-radius:22px 22px 0 0;padding:10px 20px max(20px,env(safe-area-inset-bottom));z-index:11;transition:transform .28s cubic-bezier(.2,.8,.2,1);max-height:92svh;overflow:auto;overscroll-behavior:contain;visibility:hidden}
 .sheet.open{transform:translate(-50%,0);visibility:visible}
 .grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 14px}
 .grab{width:40px;height:4px;border-radius:2px;background:#3a3a40;margin:0 auto 14px}
@@ -115,7 +115,8 @@ h2{font-size:20px;font-weight:600;letter-spacing:-.02em;margin:36px 0 10px}
 .calh h2{margin:0}
 .calh .nav{display:flex;align-items:center;gap:4px}
 .calh h2{flex:none}
-.calh .nav span{font-size:15px;color:var(--mute);min-width:7.5em;text-align:center}
+.calh .nav span{font-size:15px;color:var(--mute);min-width:6.8em;text-align:center;white-space:nowrap}
+@media(max-width:359px){.calh .nav span{font-size:13px;min-width:5.6em}}
 .calh button{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--s1);cursor:pointer;display:grid;place-items:center}
 .cal{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
 .cal .wd{font-size:12px;color:var(--dim);padding-left:4px}
@@ -180,9 +181,9 @@ h2{font-size:20px;font-weight:600;letter-spacing:-.02em;margin:36px 0 10px}
       <footer class="how">
     <h2>So läuft's</h2>
     <ol>
-      <li><b>Ab 16:00 Claude fragen.</b> Schreib „Scan den Markt“. Wenn ein Trade passt, erscheint oben dein Zettel.</li>
+      <li><b>Ab <span id="hS">16:00</span> Claude fragen.</b> Schreib „Scan den Markt“. Wenn ein Trade passt, erscheint oben dein Zettel.</li>
       <li><b>Bei Alpaca abtippen.</b> Erst kaufen (Market, Buy), sofort danach den Stop setzen (Stop, Sell).</li>
-      <li><b>Spätestens 21:55 raus.</b> Ziel erreicht oder Zeit um: Stop löschen, dann verkaufen.</li>
+      <li><b>Spätestens <span id="hF">21:55</span> raus.</b> Ziel erreicht oder Zeit um: Stop löschen, dann verkaufen.</li>
       <li><b>Eintragen.</b> Über den Zettel oder „Trade eintragen“. Dann steht er im Tagebuch und auf deiner Karte.</li>
     </ol>
     <p>Nur Spielgeld (Paper). Keine Anlageberatung. Die meisten Daytrader verlieren Geld, darum erst üben.</p>
@@ -289,7 +290,7 @@ function scrub(e){if(!trades.length||!eqP.length)return;const r=eq.getBoundingCl
   tp.textContent='';const b=document.createElement('b');b.textContent=money(q.v);tp.append(b,q.t?q.t.ticker+' · '+dDE(q.t.date)+' · '+money(pnl(q.t),true):'Start');
   tp.style.display='block';const w=tp.offsetWidth;tp.style.left=Math.min(Math.max(q.x,w/2),r.width-w/2)+'px';tp.style.top=(q.y<56?q.y+14:q.y-56)+'px'}
 function unscrub(){$('tip').style.display='none';const h=document.getElementById('hair'),d=document.getElementById('hdot');if(h){h.setAttribute('visibility','hidden');d.setAttribute('visibility','hidden')}}
-$('chart').addEventListener('pointermove',scrub);$('chart').addEventListener('pointerdown',scrub);$('chart').addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')unscrub()});$('chart').addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')setTimeout(unscrub,1500)});
+$('chart').addEventListener('pointermove',scrub);$('chart').addEventListener('pointerdown',scrub);$('chart').addEventListener('pointercancel',unscrub);$('chart').addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')unscrub()});$('chart').addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')setTimeout(unscrub,1500)});
 
 const pen='<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M11.5 3.5l3 3L6 15H3v-3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>';
 function renderList(){
@@ -307,7 +308,7 @@ function renderList(){
     const s=document.createElement('small');s.textContent=pct(pc(t));p.append(s);
     const e=document.createElement('button');e.className='ed';e.type='button';e.innerHTML=pen;e.setAttribute('aria-label','Trade bearbeiten');
     e.onclick=ev=>{ev.stopPropagation();openSheet(t)};
-    const pick=()=>{sel=t.id;renderList();drawCard();if(innerWidth<=900)$('card').scrollIntoView({behavior:'smooth',block:'center'})};
+    const pick=()=>{sel=t.id;renderList();drawCard();if(!vis||innerWidth<=900)$('card').scrollIntoView({behavior:'smooth',block:'center'})};
     r.onclick=pick;r.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();pick()}};
     r.append(a,p,e);box.append(r);
   }
@@ -318,23 +319,23 @@ function openSheet(t,pre){
   editing=t||null;$('sh').textContent=t?'Trade bearbeiten':'Trade eintragen';$('fDel').hidden=!t;document.querySelector('.sbtn').classList.toggle('solo',!t);
   $('fT').value=t?t.ticker:(pre?pre.ticker:'');$('fD').value=t?t.date:(pre&&pre.date?pre.date:lastSession());
   $('fQ').value=t?t.qty:(pre?pre.qty:'');$('fB').value=t?t.buy:(pre?pre.buy:'');$('fS').value=t?t.sell:'';$('fN').value=t?t.note:'';
-  calc();lastFocus=document.activeElement;$('scrim').classList.add('open');$('sheet').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)$(t?'fS':pre?'fS':'fT').focus()},280);
+  calc();lastFocus=document.activeElement;$('scrim').classList.add('open');$('sheet').classList.add('open');const de=document.documentElement;de.style.overflow='hidden';de.style.overscrollBehavior='none';$('sheet').style.transform='';setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)$(t?'fS':pre?'fS':'fT').focus()},280);
 }
 {let y0=null,dy=0;const sh=$('sheet');
   sh.addEventListener('touchstart',e=>{if(sh.scrollTop>0||e.target.closest('input'))return;y0=e.touches[0].clientY;dy=0;sh.classList.add('drag')},{passive:true});
   sh.addEventListener('touchmove',e=>{if(y0===null)return;dy=Math.max(0,e.touches[0].clientY-y0);sh.style.transform='translate(-50%,'+dy+'px)'},{passive:true});
-  sh.addEventListener('touchend',()=>{if(y0===null)return;y0=null;sh.classList.remove('drag');sh.style.transform='';if(dy>90)closeSheet()})}
-let lastFocus=null;function closeSheet(){if(!$('sheet').classList.contains('open'))return;$('scrim').classList.remove('open');$('sheet').classList.remove('open');document.body.style.overflow='';editing=null;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
+  const end=()=>{if(y0===null)return;y0=null;sh.classList.remove('drag');sh.style.transform='';if(dy>90)closeSheet()};sh.addEventListener('touchend',end);sh.addEventListener('touchcancel',end)}
+let lastFocus=null;function closeSheet(){if(!$('sheet').classList.contains('open'))return;$('scrim').classList.remove('open');$('sheet').classList.remove('open');const de=document.documentElement;de.style.overflow='';de.style.overscrollBehavior='';editing=null;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
 const nv=id=>{let v=String($(id).value).replace(/[\s$\u00a0]/g,'');if(!v)return NaN;
   const c=v.lastIndexOf(','),d=v.lastIndexOf('.');
   if(c>=0&&d>=0){const dec=c>d?',':'.';v=v.split(dec===','?'.':',').join('').replace(',','.')}
-  else if(/^\d{1,3}([.,]\d{3})+$/.test(v))v=v.replace(/[.,]/g,'');
+  else if(/^[1-9]\d{0,2}([.,])\d{3}(\1\d{3})+$/.test(v))v=v.replace(/[.,]/g,'');
   else v=v.replace(',','.');
   const n=Number(v);return isFinite(n)?n:NaN};
 function dateWarn(){const v=$('fD').value.split('-').map(Number);$('fDw').hidden=!(v.length===3&&v[0]&&!session(v[0],v[1],v[2]))}
 $('fD').addEventListener('input',dateWarn);$('fD').addEventListener('change',dateWarn);
 function calc(){dateWarn();const q=nv('fQ'),b=nv('fB'),s=nv('fS');
-  if(q>0&&b>0&&s>0){$('fR').textContent=money((s-b)*q,true);$('fP').textContent=pct((s-b)/b*100)}else{$('fR').textContent='–';$('fP').textContent=''}}
+  if(q>0&&b>0&&s>0){$('fR').textContent=money((s-b)*q,true);$('fP').textContent=pct((s-b)/b*100)+(Math.abs(s/b-1)>.5?' · Preise prüfen':'')}else{$('fR').textContent='–';$('fP').textContent=''}}
 ['fQ','fB','fS'].forEach(i=>$(i).addEventListener('input',calc));
 $('open').onclick=()=>openSheet(null);$('fX').onclick=closeSheet;$('scrim').onclick=closeSheet;
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
@@ -361,7 +362,8 @@ let plan=null;
 function renderPlan(){const box=$('slip'),P=plan;
   const ok=P&&P.date===berlinDay()&&P.ticker&&+P.qty>0&&+P.entry>0&&+P.stop>0;
   box.hidden=!ok;if(!ok)return;
-  const tk=String(P.ticker).toUpperCase().slice(0,8),q=+P.qty,en=+P.entry,st=+P.stop,tg=+P.target||0,fl=String(P.flat||'21:55').slice(0,5);
+  const tk=String(P.ticker).toUpperCase().slice(0,8),q=+P.qty,en=+P.entry,st=+P.stop,tg=+P.target||0,fl0=String(P.flat||'').slice(0,5);
+  const dp=String(P.date).split('-').map(Number),ses=session(dp[0],dp[1],dp[2]),sf=ses?hm(ses.early?new Date(ses.c-5*60000):ses.flat):'21:55';const fl=/^\d\d:\d\d$/.test(fl0)&&fl0<sf?fl0:sf;
   $('pDay').textContent='Dein Zettel · '+dDE(P.date);$('pBig').textContent=q+' × '+tk+' kaufen';
   const rows=[['Einstieg ca.',money(en)],['Stop (Notausgang)',money(st)]];if(tg)rows.push(['Ziel',money(tg)]);
   rows.push(['Raus spätestens',fl+' Uhr'],['Max. Verlust',money(-(en-st)*q)]);if(tg)rows.push(['Möglicher Gewinn',money((tg-en)*q,true)]);
@@ -455,9 +457,11 @@ document.addEventListener('visibilitychange',loop);
 $('dl').onclick=async()=>{const msg=$('dlMsg');const off=document.createElement('canvas');off.width=1080;off.height=1350;card(off.getContext('2d'),1080,1350,performance.now());
   const L=byDate(),t=L.find(x=>x.id===sel)||L[L.length-1];const name='trade-'+(t?t.ticker+'-'+t.date:'karte')+'.png';
   const blob=await new Promise(r=>off.toBlob(r,'image/png'));let dl=null;try{dl=window.claude?await window.claude.use('downloads'):null}catch(e){}
-  if(!dl||!blob){msg.textContent='Speichern geht hier nicht. Mach einfach einen Screenshot von der Karte.';return}
+  if(!blob){msg.textContent='Speichern ging nicht. Mach einfach einen Screenshot von der Karte.';return}
+  if(!dl){try{const f=new File([blob],name,{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});msg.textContent='Geteilt.';return}}catch(e){if(e&&e.name==='AbortError'){msg.textContent='Abgebrochen.';return}}
+    try{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);msg.textContent='Gespeichert: '+name}catch(e){msg.textContent='Speichern geht hier nicht. Mach einfach einen Screenshot von der Karte.'}return}
   try{await dl.save({filename:name,data:blob});msg.textContent='Gespeichert: '+name}
-  catch(e){msg.textContent=e&&e.code==='declined'?'Abgebrochen.':'Speichern geht in dieser App nicht. Öffne die Seite im Browser oder mach einen Screenshot.'}};
+  catch(e){msg.textContent=e&&e.code==='declined'?'Abgebrochen.':'Speichern geht in dieser App nicht. Mach einfach einen Screenshot von der Karte.'}};
 
 const HOL={'2026-01-01':1,'2026-01-19':1,'2026-02-16':1,'2026-04-03':1,'2026-05-25':1,'2026-06-19':1,'2026-07-03':1,'2026-09-07':1,'2026-11-26':'Thanksgiving','2026-12-25':'Weihnachten','2027-01-01':1,'2027-01-18':1,'2027-02-15':1,'2027-03-26':1,'2027-05-31':1,'2027-06-18':1,'2027-07-05':1,'2027-09-06':1,'2027-11-25':'Thanksgiving','2027-12-24':'Weihnachten'};
 const EARLY={'2026-11-27':1,'2026-12-24':1,'2027-11-26':1};
@@ -481,8 +485,11 @@ function market(){const now=new Date(),p=nyParts(now),el=$('mkt'),tx=$('mktT');
     const k=iso(p.year,p.month,p.day),why=HOL[k]&&HOL[k]!==1?' ('+HOL[k]+')':'';
     const bd=n?n.o.toLocaleDateString('en-CA',{timeZone:'Europe/Berlin'}):'',tmr=new Date(Date.now()+864e5).toLocaleDateString('en-CA',{timeZone:'Europe/Berlin'});
     msg='Börse zu'+why+' · öffnet '+(n?(bd===berlinDay()?'heute':bd===tmr?'morgen':n.o.toLocaleDateString('de-DE',{weekday:'long',timeZone:'Europe/Berlin'}))+' um '+hm(n.o)+(n.early?' · nur bis '+hm(n.c):''):'bald')}
-  el.classList.toggle('open',open);tx.textContent=msg}
-market();setInterval(market,30000);
+  el.classList.toggle('open',open);tx.textContent=msg;
+  let ns=s;if(!ns||now>=ns.c){const base=new Date(Date.UTC(p.year,p.month-1,p.day));for(let j=1;j<12&&(!ns||now>=ns.c);j++){const d=new Date(base.getTime()+j*864e5);ns=session(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate())}}
+  if(ns){$('hS').textContent=hm(new Date(ns.o.getTime()+30*60000));$('hF').textContent=hm(ns.early?new Date(ns.c-5*60000):ns.flat)}}
+let shownDay=berlinDay();function tick(){market();if(berlinDay()!==shownDay){shownDay=berlinDay();all()}}
+tick();setInterval(tick,30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
 
 let calY,calM;{const p=nyParts(new Date());calY=p.year;calM=p.month}
 const short=v=>{const a=Math.abs(v),s=a>=1000?(a/1000).toFixed(a>=10000?0:1)+'k':a>=100?String(Math.round(a)):a>=10?a.toFixed(0):a.toFixed(2);return (v<0?'−':'+')+'$'+s};
