@@ -29,6 +29,7 @@ button{font:inherit;color:inherit}
 .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:48px;align-items:start;margin-top:12px}
 .lbl{font-size:14px;color:var(--mute)}
 .bal{font-size:clamp(44px,11vw,64px);font-weight:600;letter-spacing:-.045em;line-height:1.05;margin:4px 0 6px;white-space:nowrap}
+.bal.loading{color:var(--s2)}
 .chg{font-size:15px;color:var(--mute)}
 .chg b{color:var(--ink);font-weight:500}
 .chart{position:relative;height:150px;margin:22px 0 8px}
@@ -83,6 +84,8 @@ h2{font-size:20px;font-weight:600;letter-spacing:-.02em;margin:36px 0 10px}
 .sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,100%);width:min(560px,100%);background:var(--s1);border:1px solid var(--line);border-bottom:0;border-radius:22px 22px 0 0;padding:10px 20px max(20px,env(safe-area-inset-bottom));z-index:11;transition:transform .28s cubic-bezier(.2,.8,.2,1);max-height:92svh;overflow:auto;overscroll-behavior:contain;visibility:hidden}
 .sheet.open{transform:translate(-50%,0);visibility:visible}
 .grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 14px}
+.grab{width:40px;height:4px;border-radius:2px;background:#3a3a40;margin:0 auto 14px}
+.sheet.drag{transition:none}
 .sheet h3{font-size:20px;font-weight:600;margin:0 0 16px;letter-spacing:-.02em}
 .f{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .f label{display:block;font-size:13px;color:var(--mute);margin-bottom:6px}
@@ -160,7 +163,7 @@ h2{font-size:20px;font-weight:600;letter-spacing:-.02em;margin:36px 0 10px}
   <div class="grid">
     <div class="left">
       <div class="lbl">Kontostand</div>
-      <div class="bal num" id="bal">$5,000.00</div>
+      <div class="bal num loading" id="bal">$5,000.00</div>
       <div class="chg num" id="chg"><b>$0.00</b> · 0.00 % seit Start</div>
       <div class="chart" id="chart"><svg id="eq" aria-label="Kontoverlauf"></svg><div class="tip num" id="tip"></div></div>
       <div class="stats num">
@@ -200,6 +203,7 @@ h2{font-size:20px;font-weight:600;letter-spacing:-.02em;margin:36px 0 10px}
 
 <div class="scrim" id="scrim"></div>
 <form class="sheet" id="sheet" autocomplete="off" role="dialog" aria-modal="true" aria-labelledby="sh">
+  <div class="grab" aria-hidden="true"></div>
   <h3 id="sh">Trade eintragen</h3>
   <div class="f">
     <div><label for="fT">Aktie</label><input id="fT" placeholder="TSLA" maxlength="8" required autocapitalize="characters"></div>
@@ -316,6 +320,10 @@ function openSheet(t,pre){
   $('fQ').value=t?t.qty:(pre?pre.qty:'');$('fB').value=t?t.buy:(pre?pre.buy:'');$('fS').value=t?t.sell:'';$('fN').value=t?t.note:'';
   calc();lastFocus=document.activeElement;$('scrim').classList.add('open');$('sheet').classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>{if(matchMedia('(pointer:fine)').matches)$(t?'fS':pre?'fS':'fT').focus()},280);
 }
+{let y0=null,dy=0;const sh=$('sheet');
+  sh.addEventListener('touchstart',e=>{if(sh.scrollTop>0||e.target.closest('input'))return;y0=e.touches[0].clientY;dy=0;sh.classList.add('drag')},{passive:true});
+  sh.addEventListener('touchmove',e=>{if(y0===null)return;dy=Math.max(0,e.touches[0].clientY-y0);sh.style.transform='translate(-50%,'+dy+'px)'},{passive:true});
+  sh.addEventListener('touchend',()=>{if(y0===null)return;y0=null;sh.classList.remove('drag');sh.style.transform='';if(dy>90)closeSheet()})}
 let lastFocus=null;function closeSheet(){if(!$('sheet').classList.contains('open'))return;$('scrim').classList.remove('open');$('sheet').classList.remove('open');document.body.style.overflow='';editing=null;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
 const nv=id=>{let v=String($(id).value).replace(/[\s$\u00a0]/g,'');if(!v)return NaN;
   const c=v.lastIndexOf(','),d=v.lastIndexOf('.');
@@ -345,7 +353,7 @@ $('tUndo').onclick=async()=>{$('toast').classList.remove('show');if(!undo)return
 
 function clean(id,d){d=d||{};return{id,ticker:String(d.ticker||'?').toUpperCase().slice(0,8),date:/^\d{4}-\d{2}-\d{2}$/.test(d.date)?d.date:'1970-01-01',qty:+d.qty||0,buy:+d.buy||0,sell:+d.sell||0,note:String(d.note||'').slice(0,80),created:+d.created||0}}
 function note(){$('store').textContent=local?'Gespeichert nur auf diesem Gerät.':'Wird automatisch gespeichert. Du kannst Claude auch sagen: „Trag den Trade ein.“'}
-function loadLocal(){local=true;try{plan=JSON.parse(localStorage.getItem('tt-plan')||'null')}catch(e){plan=null}renderPlan();try{trades=JSON.parse(localStorage.getItem('tt-trades')||'[]').map(x=>clean(x.id,x))}catch(e){trades=[]}note();all()}
+function loadLocal(){local=true;loaded=true;try{plan=JSON.parse(localStorage.getItem('tt-plan')||'null')}catch(e){plan=null}renderPlan();try{trades=JSON.parse(localStorage.getItem('tt-trades')||'[]').map(x=>clean(x.id,x))}catch(e){trades=[]}note();all()}
 function saveLocal(){try{localStorage.setItem('tt-trades',JSON.stringify(trades))}catch(e){}}
 async function put(id,t){if(col)await col.doc(id).set(t);else{trades=trades.filter(x=>x.id!==id).concat([clean(id,t)]);saveLocal();all()}}
 async function remove(id){if(col)await col.doc(id).delete();else{trades=trades.filter(x=>x.id!==id);saveLocal();all()}}
@@ -371,7 +379,7 @@ async function boot(){
   if(!db){clearTimeout(timer);loadLocal();return}
   col=db.collection('trades');
   db.doc('plan/today').onSnapshot(d=>{plan=d.exists?d.data():null;renderPlan()},()=>{});
-  col.onSnapshot(s=>{clearTimeout(timer);local=false;trades=s.docs.filter(d=>d.exists).map(d=>clean(d.id,d.data()));note();all()},
+  col.onSnapshot(s=>{clearTimeout(timer);local=false;loaded=true;trades=s.docs.filter(d=>d.exists).map(d=>clean(d.id,d.data()));note();all()},
     ()=>{clearTimeout(timer);col=null;loadLocal()});
 }
 
@@ -499,7 +507,8 @@ function renderCal(){
 $('calP').onclick=()=>{calM--;if(calM<1){calM=12;calY--}renderCal()};
 $('calN').onclick=()=>{calM++;if(calM>12){calM=1;calY++}renderCal()};
 
-function all(){if(sel&&!trades.find(t=>t.id===sel))sel=null;renderPlan();$('dl').disabled=!trades.length;renderAccount();renderList();renderCal();drawCard()}
+let loaded=false;
+function all(){if(loaded)$('bal').classList.remove('loading');if(sel&&!trades.find(t=>t.id===sel))sel=null;renderPlan();$('dl').disabled=!trades.length;renderAccount();renderList();renderCal();drawCard()}
 all();loop();boot();
 document.fonts&&document.fonts.ready.then(()=>{drawCard();drawEq()});
 }
