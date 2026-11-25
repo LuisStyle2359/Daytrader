@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trade-Tagebuch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800;900&display=swap" rel="stylesheet">
+<style>
+/* VOICE occasion: a night-time flex, but the journal underneath stays honest and exact
+   IDEA a cinematic share card, lit like a film poster, that you print out of your own trade log
+   PICTURE the live animated card (light beams, gold dust, your equity line, the big P&L) at the top
+   COLOUR near-black ground, warm gold light as the one accent, green and red only for P&L
+   TYPE Archivo 900 for the big numbers, Archivo for everything else
+   LAYOUT laptop: card left, card settings right, journal below; phone: stats, card, settings, form, list */
+:root{color-scheme:dark;--bg:#08070a;--panel:#121016;--line:#2a2530;--ink:#f4efe6;--mute:#a39b8f;--gold:#f2b84b;--up:#3fd18a;--down:#ff5d5d}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 Archivo,system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(20px,4vw,48px) max(4vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+h1{font-weight:900;font-size:clamp(32px,6vw,48px);line-height:1.05;letter-spacing:-.02em;margin:0}
+h2{font-weight:800;font-size:22px;margin:0 0 12px}
+.top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:24px;align-items:end;background:radial-gradient(120% 140% at 80% -20%,#3a2a10 0%,var(--bg) 60%)}
+.bal{font-weight:900;font-size:clamp(40px,8vw,72px);line-height:1;letter-spacing:-.03em;white-space:nowrap;margin-top:14px}
+.sub{color:var(--mute);font-size:15px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:16px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.stat b{display:block;font-size:20px;font-weight:800;white-space:nowrap}
+.stat span{font-size:13px;color:var(--mute)}
+.eq{position:relative;height:170px}
+.eq svg{position:absolute;inset:0;width:100%;height:100%}
+.up{color:var(--up)}.down{color:var(--down)}
+.studio{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);gap:24px;align-items:start}
+.stage{background:#000;border-radius:18px;padding:clamp(10px,2vw,24px);display:grid;place-items:center;border:1px solid var(--line)}
+#card{display:block;max-width:100%;max-height:72svh;width:auto;height:auto;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px}
+.grp{margin-bottom:16px}
+.grp>label,.lbl{display:block;font-size:13px;color:var(--mute);margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:600 15px Archivo,sans-serif;color:var(--ink);background:#1c1920;border:1px solid var(--line);border-radius:999px;min-height:44px;padding:0 16px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--gold);color:#140e02;border-color:var(--gold)}
+.chip:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+select,input{font:16px Archivo,sans-serif;color:var(--ink);background:#0c0b0f;border:1px solid var(--line);border-radius:10px;min-height:44px;padding:0 12px;width:100%}
+.btn{font:800 16px Archivo,sans-serif;border-radius:12px;min-height:48px;padding:0 18px;cursor:pointer;border:1px solid var(--line);background:#1c1920;color:var(--ink)}
+.btn.main{background:var(--gold);color:#140e02;border-color:var(--gold)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row .btn{flex:1 1 140px}
+.note{font-size:13px;color:var(--mute);margin:10px 0 0}
+.journal{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:24px;align-items:start}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.form .full{grid-column:1/-1}
+.live{font-size:15px;color:var(--mute);min-height:24px}
+.list{display:grid;gap:8px}
+.tr{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 14px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.tk{font-weight:900;font-size:20px;letter-spacing:-.01em}
+.meta{font-size:14px;color:var(--mute)}
+.pl{font-weight:800;font-size:18px;text-align:right;white-space:nowrap}
+.acts{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}
+.acts button{font:600 14px Archivo,sans-serif;background:none;border:1px solid var(--line);color:var(--mute);border-radius:999px;min-height:36px;padding:0 12px;cursor:pointer}
+.empty{color:var(--mute);border:1px dashed var(--line);border-radius:14px;padding:16px}
+.tag{display:inline-block;font-size:12px;font-weight:600;color:#140e02;background:var(--gold);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:2px}
+@media(max-width:820px){.top,.studio,.journal{grid-template-columns:minmax(0,1fr)}.eq{height:140px}}
+@media(max-width:420px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.stat b{font-size:17px}}
+</style>
+</head>
+<body>
+<header class="band top"><div class="wrap" style="display:contents">
+  <div>
+    <h1>Trade-Tagebuch</h1>
+    <div class="sub">Paper-Konto · Start 5.000 $</div>
+    <div class="bal" id="bal">$5,000.00</div>
+    <div class="sub" id="balsub">noch keine Trades</div>
+    <div class="stats">
+      <div class="stat"><b id="sPl">$0.00</b><span>Gewinn gesamt</span></div>
+      <div class="stat"><b id="sHit">–</b><span>Trefferquote</span></div>
+      <div class="stat"><b id="sN">0</b><span>Trades</span></div>
+    </div>
+  </div>
+  <div class="eq" id="eq" aria-label="Kontoverlauf"><svg id="eqs"></svg></div>
+</div></header>
+
+<section class="band"><div class="wrap studio">
+  <div class="stage"><canvas id="card" width="540" height="675" aria-label="Share-Karte"></canvas></div>
+  <div class="panel">
+    <h2>Share-Karte</h2>
+    <div class="grp"><label for="pick">Trade</label><select id="pick"></select></div>
+    <div class="grp"><span class="lbl">Vorlage</span><div class="chips" data-k="tpl"><button class="chip" data-v="spot">Spotlight</button><button class="chip" data-v="min">Minimal</button></div></div>
+    <div class="grp"><span class="lbl">Format</span><div class="chips" data-k="fmt"><button class="chip" data-v="1:1">1:1</button><button class="chip" data-v="4:5">4:5</button><button class="chip" data-v="9:16">9:16 Story</button><button class="chip" data-v="16:10">16:10</button></div></div>
+    <div class="grp"><span class="lbl">Licht</span><div class="chips" data-k="tone"><button class="chip" data-v="gold">Gold</button><button class="chip" data-v="ice">Eis</button><button class="chip" data-v="ruby">Rubin</button><button class="chip" data-v="paper">Papier</button></div></div>
+    <div class="grp"><span class="lbl">Animation</span><div class="chips" data-k="anim"><button class="chip" data-v="dust">Goldstaub</button><button class="chip" data-v="rays">Lichtstrahlen</button><button class="chip" data-v="none">Ruhig</button></div></div>
+    <div class="row"><button class="btn" id="rnd">Zufall</button><button class="btn main" id="save">Bild speichern</button></div>
+    <p class="note" id="saveMsg">Speichert die Karte als PNG in voller Größe.</p>
+  </div>
+</div></section>
+
+<section class="band" style="padding-top:0"><div class="wrap journal">
+  <form class="panel" id="f" autocomplete="off">
+    <h2 id="fh">Trade eintragen</h2>
+    <div class="form">
+      <div><label class="lbl" for="fT">Aktie</label><input id="fT" placeholder="TSLA" required maxlength="8"></div>
+      <div><label class="lbl" for="fD">Datum</label><input id="fD" type="date" required></div>
+      <div><label class="lbl" for="fQ">Stück</label><input id="fQ" type="number" min="0.0001" step="any" inputmode="decimal" required></div>
+      <div><label class="lbl" for="fB">Kaufpreis $</label><input id="fB" type="number" min="0" step="any" inputmode="decimal" required></div>
+      <div><label class="lbl" for="fS">Verkaufspreis $</label><input id="fS" type="number" min="0" step="any" inputmode="decimal" required></div>
+      <div><label class="lbl" for="fN">Notiz</label><input id="fN" placeholder="z. B. Stop gegriffen" maxlength="80"></div>
+      <div class="full live" id="fLive" aria-live="polite"></div>
+      <div class="full row"><button class="btn main" type="submit" id="fGo">Speichern</button><button class="btn" type="button" id="fX" hidden>Abbrechen</button></div>
+    </div>
+    <p class="note" id="store">Verbinde Speicher …</p>
+  </form>
+  <div>
+    <h2>Alle Trades</h2>
+    <div class="list" id="list"></div>
+  </div>
+</div></section>
+
+<script>
+{
+const START=5000;
+const $=id=>document.getElementById(id);
+const usd=(v,sign)=>{const s=Math.abs(v).toLocaleString('en-US',{style:'currency',currency:'USD'});return (sign?(v>0?'+':v<0?'−':''):(v<0?'−':''))+s};
+const pct=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toLocaleString('de-DE',{maximumFractionDigits:2})+' %';
+const dDE=s=>{const p=String(s||'').split('-');return p.length===3?p[2]+'.'+p[1]+'.'+p[0]:String(s||'')};
+const SAMPLE=[
+  {id:'s1',ticker:'TSLA',date:'2026-10-19',qty:8,buy:364.18,sell:370.04,note:'Ziel erreicht',sample:true,created:1},
+  {id:'s2',ticker:'AAPL',date:'2026-10-21',qty:20,buy:251.4,sell:249.1,note:'Stop gegriffen',sample:true,created:2},
+  {id:'s3',ticker:'NVDA',date:'2026-10-23',qty:15,buy:188.2,sell:193.6,note:'Breakout lief',sample:true,created:3}
+];
+let trades=[],db=null,col=null,local=false;
+const st={tpl:'spot',fmt:'4:5',tone:'gold',anim:'dust',pick:null};
+try{Object.assign(st,JSON.parse(localStorage.getItem('tt-card')||'{}'))}catch(e){}
+const pnl=t=>(Number(t.sell)-Number(t.buy))*Number(t.qty);
+const sorted=()=>[...(trades.length?trades:SAMPLE)].sort((a,b)=>String(a.date).localeCompare(String(b.date))||(a.created||0)-(b.created||0));
+
+/* ---------- stats + equity ---------- */
+function renderStats(){
+  const L=sorted(),isS=!trades.length;
+  const tot=L.reduce((s,t)=>s+pnl(t),0),wins=L.filter(t=>pnl(t)>0).length;
+  $('bal').textContent=usd(START+tot);
+  $('balsub').textContent=isS?'Beispiel-Daten · verschwinden mit deinem ersten Trade':(tot>=0?'im Plus seit Start':'im Minus seit Start')+' · '+pct(tot/START*100);
+  $('sPl').textContent=usd(tot,true);$('sPl').className=tot>0?'up':tot<0?'down':'';
+  $('sHit').textContent=L.length?Math.round(wins/L.length*100)+' %':'–';
+  $('sN').textContent=L.length;
+  drawEq();
+}
+const eqs=$('eqs');
+function drawEq(){
+  const W=eqs.clientWidth,H=eqs.clientHeight;if(!W)return;
+  const L=sorted();let c=START;const pts=[START,...L.map(t=>c+=pnl(t))];
+  const lo=Math.min(...pts,START),hi=Math.max(...pts,START),pad=(hi-lo)*.15||50;
+  const y=v=>8+(H-34)*(1-(v-(lo-pad))/((hi+pad)-(lo-pad))),x=i=>12+(W-24)*(pts.length<2?1:i/(pts.length-1));
+  const line=pts.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(v).toFixed(1)).join('');
+  const last=pts[pts.length-1],col2=last>=START?'#3fd18a':'#ff5d5d';
+  eqs.innerHTML=`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col2}" stop-opacity=".35"/><stop offset="1" stop-color="${col2}" stop-opacity="0"/></linearGradient></defs>
+  <line x1="12" x2="${W-12}" y1="${y(START)}" y2="${y(START)}" stroke="#4a4350" stroke-dasharray="3 5"/>
+  <text x="14" y="${y(START)-6}" fill="#a39b8f" font-size="13">Start 5.000 $</text>
+  <path d="${line}L${x(pts.length-1)} ${H-26}L${x(0)} ${H-26}Z" fill="url(#g)"/>
+  <path d="${line}" fill="none" stroke="${col2}" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="${x(pts.length-1)}" cy="${y(last)}" r="5" fill="${col2}"/>
+  <text x="${W-12}" y="${H-6}" fill="#a39b8f" font-size="13" text-anchor="end">Kontoverlauf nach Trades</text>`;
+}
+const eqRO=new ResizeObserver(drawEq);eqRO.observe(eqs);
+
+/* ---------- list + form ---------- */
+function renderList(){
+  const box=$('list');box.textContent='';
+  const L=sorted().reverse();
+  if(!trades.length){const e=document.createElement('div');e.className='empty';e.textContent='Noch keine eigenen Trades. Darunter siehst du Beispiele. Trag deinen ersten Trade im Formular ein.';box.append(e)}
+  for(const t of L){
+    const r=document.createElement('div');r.className='tr';
+    const tk=document.createElement('div');tk.className='tk';tk.textContent=String(t.ticker);
+    if(t.sample){const g=document.createElement('span');g.className='tag';g.textContent='Beispiel';tk.append(g)}
+    const m=document.createElement('div');m.className='meta';
+    m.textContent=dDE(t.date)+' · '+t.qty+' Stück · '+usd(+t.buy)+' → '+usd(+t.sell)+(t.note?' · '+t.note:'');
+    const p=document.createElement('div');const v=pnl(t);p.className='pl '+(v>0?'up':v<0?'down':'');p.textContent=usd(v,true);
+    r.append(tk,m,p);
+    const a=document.createElement('div');a.className='acts';
+    const mk=(txt,fn)=>{const b=document.createElement('button');b.type='button';b.textContent=txt;b.onclick=fn;a.append(b)};
+    mk('Karte zeigen',()=>{st.pick=t.id;syncPick();$('card').scrollIntoView({behavior:'smooth',block:'center'})});
+    if(!t.sample){mk('Bearbeiten',()=>edit(t));mk('Löschen',()=>del(t))}
+    r.append(a);box.append(r);
+  }
+}
+let editing=null,lastDeleted=null;
+function edit(t){editing=t.id;$('fT').value=t.ticker;$('fD').value=t.date;$('fQ').value=t.qty;$('fB').value=t.buy;$('fS').value=t.sell;$('fN').value=t.note||'';$('fh').textContent='Trade bearbeiten';$('fX').hidden=false;live();$('f').scrollIntoView({behavior:'smooth'})}
+function resetForm(){editing=null;$('f').reset();$('fD').value=new Date().toISOString().slice(0,10);$('fh').textContent='Trade eintragen';$('fX').hidden=true;live()}
+function live(){const q=+$('fQ').value,b=+$('fB').value,s=+$('fS').value;const o=$('fLive');
+  if(q>0&&b>0&&s>0){const v=(s-b)*q;o.textContent='Ergebnis: '+usd(v,true)+' ('+pct((s-b)/b*100)+')';o.className='full live '+(v>0?'up':v<0?'down':'')}else{o.textContent='';o.className='full live'}}
+['fQ','fB','fS'].forEach(i=>$(i).addEventListener('input',live));
+$('fX').onclick=resetForm;
+$('f').addEventListener('submit',async e=>{e.preventDefault();
+  const t={ticker:$('fT').value.trim().toUpperCase().replace(/[^A-Z0-9.\-]/g,''),date:$('fD').value,qty:+$('fQ').value,buy:+$('fB').value,sell:+$('fS').value,note:$('fN').value.trim()};
+  if(!t.ticker||!(t.qty>0&&t.buy>0&&t.sell>0))return;
+  const id=editing||('t'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
+  const old=trades.find(x=>x.id===id);t.created=old?old.created:Date.now();
+  $('fGo').disabled=true;
+  try{await put(id,t);st.pick=id;resetForm()}catch(err){$('store').textContent='Speichern ging nicht: '+(err&&err.code||'Fehler')}
+  $('fGo').disabled=false});
+async function del(t){lastDeleted=t;try{await remove(t.id)}catch(e){}
+  const n=$('store');n.textContent='Gelöscht: '+t.ticker+'. ';const u=document.createElement('button');u.type='button';u.className='chip';u.textContent='Rückgängig';
+  u.onclick=async()=>{if(lastDeleted){const {id,...b}=lastDeleted;lastDeleted=null;await put(id,b);n.textContent=storeNote()}};n.append(u)}
+
+/* ---------- storage ---------- */
+const storeNote=()=>local?'Speichert nur auf diesem Gerät (Online-Speicher nicht erreichbar).':'Online gespeichert. Claude kann Trades für dich eintragen.';
+function loadLocal(){local=true;try{trades=JSON.parse(localStorage.getItem('tt-trades')||'[]')}catch(e){trades=[]}$('store').textContent=storeNote();all()}
+function saveLocal(){try{localStorage.setItem('tt-trades',JSON.stringify(trades))}catch(e){}}
+async function put(id,t){if(col){await col.doc(id).set(t)}else{trades=trades.filter(x=>x.id!==id).concat([{id,...t}]);saveLocal();all()}}
+async function remove(id){if(col){await col.doc(id).delete()}else{trades=trades.filter(x=>x.id!==id);saveLocal();all()}}
+function clean(id,d){d=d||{};return{id,ticker:String(d.ticker||'?').slice(0,8),date:String(d.date||''),qty:+d.qty||0,buy:+d.buy||0,sell:+d.sell||0,note:String(d.note||'').slice(0,80),created:+d.created||0}}
+async function boot(){
+  const timer=setTimeout(()=>{if(!col)loadLocal()},10000);
+  try{db=window.claude&&await window.claude.use('db')}catch(e){db=null}
+  if(!db){clearTimeout(timer);loadLocal();return}
+  col=db.collection('trades');
+  col.onSnapshot(s=>{clearTimeout(timer);local=false;trades=s.docs.filter(d=>d.exists).map(d=>clean(d.id,d.data()));$('store').textContent=storeNote();all()},
+    e=>{clearTimeout(timer);col=null;loadLocal()});
+}
+
+/* ---------- card ---------- */
+const cv=$('card'),cx=cv.getContext('2d');
+const FMT={'1:1':[1080,1080],'4:5':[1080,1350],'9:16':[1080,1920],'16:10':[1920,1200]};
+const TONE={gold:{bg:'#070508',lt:[255,190,90],ink:'#fff6e6',sub:'rgba(255,240,220,.72)'},ice:{bg:'#04070d',lt:[150,210,255],ink:'#eef7ff',sub:'rgba(220,236,255,.72)'},ruby:{bg:'#0a0405',lt:[255,96,84],ink:'#fff0ee',sub:'rgba(255,225,220,.72)'},paper:{bg:'#efe8da',lt:[255,214,150],ink:'#1b1610',sub:'rgba(27,22,16,.66)',light:1}};
+let seed=7;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+let dust=[];function mkDust(){seed=11;dust=Array.from({length:140},()=>({x:rnd(),y:rnd(),r:.4+rnd()*1.8,s:.2+rnd()*.8,p:rnd()*6.28}))}mkDust();
+function syncPick(){const L=sorted(),sel=$('pick');sel.textContent='';
+  for(const t of [...L].reverse()){const o=document.createElement('option');o.value=t.id;o.textContent=t.ticker+' · '+dDE(t.date)+' · '+usd(pnl(t),true)+(t.sample?' (Beispiel)':'');sel.append(o)}
+  if(!L.find(t=>t.id===st.pick))st.pick=L.length?L[L.length-1].id:null;sel.value=st.pick||'';drawOnce()}
+$('pick').onchange=e=>{st.pick=e.target.value;remember();drawOnce()};
+function remember(){try{localStorage.setItem('tt-card',JSON.stringify({tpl:st.tpl,fmt:st.fmt,tone:st.tone,anim:st.anim}))}catch(e){}}
+document.querySelectorAll('.chips').forEach(g=>{const k=g.dataset.k;
+  g.querySelectorAll('.chip').forEach(b=>{b.setAttribute('aria-pressed',String(st[k]===b.dataset.v));b.type='button';
+    b.onclick=()=>{st[k]=b.dataset.v;g.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));remember();sizeCanvas();loop()}})});
+$('rnd').onclick=()=>{const pick=(k,a)=>{st[k]=a[Math.floor(Math.random()*a.length)]};pick('tpl',['spot','spot','min']);pick('tone',['gold','ice','ruby','paper']);pick('anim',['dust','rays']);
+  document.querySelectorAll('.chips').forEach(g=>g.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',String(st[g.dataset.k]===x.dataset.v))));remember();sizeCanvas();loop()};
+function sizeCanvas(){const [w,h]=FMT[st.fmt]||FMT['4:5'];cv.width=w/2;cv.height=h/2;drawOnce()}
+
+function draw(c,W,H,time){
+  const L=sorted(),t=L.find(x=>x.id===st.pick)||L[L.length-1];if(!t)return;
+  const T=TONE[st.tone]||TONE.gold,[r,g,b]=T.lt,u=Math.min(W,H)/1080,v=pnl(t),pc=(t.sell-t.buy)/t.buy*100;
+  const rgba=a=>`rgba(${r},${g},${b},${a})`,spot=st.tpl==='spot';
+  c.save();c.fillStyle=T.bg;c.fillRect(0,0,W,H);
+  // light
+  const ox=W*.62,oy=-H*.08;
+  const glow=c.createRadialGradient(ox,oy,0,ox,oy,Math.max(W,H)*(spot?1.05:.8));
+  glow.addColorStop(0,rgba(T.light?.55:.75));glow.addColorStop(.35,rgba(T.light?.18:.22));glow.addColorStop(1,rgba(0));
+  c.fillStyle=glow;c.fillRect(0,0,W,H);
+  if(spot){
+    const sway=st.anim==='rays'?Math.sin(time/2400)*.08:0;
+    c.globalCompositeOperation=T.light?'multiply':'lighter';
+    for(let i=0;i<9;i++){const a=Math.PI/2+(i-4)*.13+sway+Math.sin(i*3.1)*.03,w=.025+(i%3)*.012,len=Math.hypot(W,H)*1.2;
+      const gr=c.createLinearGradient(ox,oy,ox+Math.cos(a)*len,oy+Math.sin(a)*len);
+      gr.addColorStop(0,rgba(T.light?.18:.22));gr.addColorStop(.7,rgba(0));
+      c.fillStyle=gr;c.beginPath();c.moveTo(ox,oy);c.lineTo(ox+Math.cos(a-w)*len,oy+Math.sin(a-w)*len);c.lineTo(ox+Math.cos(a+w)*len,oy+Math.sin(a+w)*len);c.closePath();c.fill()}
+    c.globalCompositeOperation='source-over';
+    // horizon hills
+    const hz=H*.8;c.fillStyle=T.light?'rgba(60,45,25,.10)':'rgba(0,0,0,.55)';
+    c.beginPath();c.moveTo(0,H);for(let x=0;x<=W;x+=W/40)c.lineTo(x,hz-Math.sin(x/W*5.2)*H*.03-Math.sin(x/W*13)*H*.012);c.lineTo(W,H);c.fill();
+  }
+  // dust
+  if(st.anim!=='none'||spot){c.globalCompositeOperation=T.light?'source-over':'lighter';
+    for(const d of dust){const yy=((d.y-(st.anim==='dust'?time*d.s/60000:0))%1+1)%1,xx=d.x+Math.sin(time/3000+d.p)*.006;
+      const near=1-Math.min(1,Math.hypot(xx*W-ox,yy*H-oy)/(Math.max(W,H)*.95));
+      c.fillStyle=T.light?`rgba(120,90,40,${.25*near})`:rgba(.15+.75*near);c.beginPath();c.arc(xx*W,yy*H,d.r*u*2.2,0,6.283);c.fill()}
+    c.globalCompositeOperation='source-over'}
+  // equity line up to this trade
+  let cum=0;const idx=L.indexOf(t),pts=[0,...L.slice(0,idx+1).map(x=>cum+=pnl(x))];
+  if(pts.length<3)pts.unshift(0);
+  const lo=Math.min(...pts),hi=Math.max(...pts),rng=hi-lo||1,gx0=W*.08,gx1=W*.92,gy0=H*(spot?.56:.6),gy1=H*(spot?.74:.78);
+  const P=pts.map((p,i)=>[gx0+(gx1-gx0)*i/(pts.length-1),gy1-(gy1-gy0)*(p-lo)/rng]);
+  c.lineJoin='round';c.lineCap='round';c.strokeStyle=v>=0?(T.light?'#1d7a4c':'#c9ffd9'):(T.light?'#b23434':'#ffc2bb');
+  c.shadowColor=v>=0?'rgba(63,209,138,.9)':'rgba(255,93,93,.9)';c.shadowBlur=T.light?0:18*u;c.lineWidth=4*u;
+  c.beginPath();P.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.stroke();c.shadowBlur=0;
+  const [lx,ly]=P[P.length-1];c.fillStyle=c.strokeStyle;c.beginPath();c.arc(lx,ly,8*u,0,6.283);c.fill();
+  // text
+  const pad=W*.07,ink=T.ink;c.textBaseline='alphabetic';
+  c.font=`600 ${30*u}px Archivo, sans-serif`;const tag=String(t.ticker)+'  ·  '+dDE(t.date);const tw=c.measureText(tag).width;
+  c.fillStyle=T.light?'rgba(0,0,0,.08)':'rgba(255,255,255,.12)';rr(c,pad,pad,tw+80*u,58*u,29*u);c.fill();
+  c.fillStyle=v>=0?'#3fd18a':'#ff5d5d';c.beginPath();c.arc(pad+30*u,pad+29*u,9*u,0,6.283);c.fill();
+  c.fillStyle=ink;c.fillText(tag,pad+52*u,pad+40*u);
+  const big=usd(v,true);let fs=(st.fmt==='16:10'?190:210)*u;c.font=`900 ${fs}px Archivo, sans-serif`;
+  while(c.measureText(big).width>W-pad*2&&fs>40){fs-=6;c.font=`900 ${fs}px Archivo, sans-serif`}
+  const by=spot?H*.5:H*.46,bx=spot?W/2:pad;c.textAlign=spot?'center':'left';
+  if(!T.light){c.shadowColor=rgba(.6);c.shadowBlur=40*u}c.fillStyle=ink;c.fillText(big,bx,by);c.shadowBlur=0;
+  c.font=`500 ${34*u}px Archivo, sans-serif`;c.fillStyle=T.sub;
+  c.fillText(pct(pc)+'   ·   '+t.qty+' Aktien   ·   '+usd(+t.buy)+' → '+usd(+t.sell),bx,by+fs*.38);
+  c.textAlign='left';c.font=`800 ${24*u}px Archivo, sans-serif`;c.fillStyle=ink;
+  const bw=c.measureText('PAPER TRADE').width+36*u;c.strokeStyle=T.sub;c.lineWidth=2*u;rr(c,pad,H-pad-48*u,bw,48*u,10*u);c.stroke();c.fillText('PAPER TRADE',pad+18*u,H-pad-15*u);
+  c.textAlign='right';c.font=`600 ${26*u}px Archivo, sans-serif`;c.fillStyle=T.sub;c.fillText('Trade-Tagebuch',W-pad,H-pad-15*u);
+  c.restore();
+}
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+const still=matchMedia('(prefers-reduced-motion: reduce)');let raf=0;
+function drawOnce(){draw(cx,cv.width,cv.height,performance.now())}
+function frame(ts){draw(cx,cv.width,cv.height,ts);raf=requestAnimationFrame(frame)}
+function loop(){cancelAnimationFrame(raf);if(st.anim==='none'||still.matches||document.hidden){drawOnce();return}raf=requestAnimationFrame(frame)}
+document.addEventListener('visibilitychange',loop);
+
+$('save').onclick=async()=>{const msg=$('saveMsg');const [w,h]=FMT[st.fmt];const off=document.createElement('canvas');off.width=w;off.height=h;draw(off.getContext('2d'),w,h,performance.now());
+  const t=sorted().find(x=>x.id===st.pick);const name='trade-'+(t?t.ticker+'-'+t.date:'karte')+'.png';
+  const blob=await new Promise(r=>off.toBlob(r,'image/png'));let dl=null;try{dl=await window.claude?.use('downloads')}catch(e){}
+  if(!dl||!blob){msg.textContent='Speichern geht hier nicht. Mach einfach einen Screenshot von der Karte.';return}
+  try{await dl.save({filename:name,data:blob});msg.textContent='Gespeichert: '+name}
+  catch(e){msg.textContent=e&&e.code==='declined'?'Abgebrochen.':e&&e.code==='host_unavailable'?'Die App kann keine Dateien speichern. Öffne die Seite im Browser oder mach einen Screenshot.':'Speichern ging nicht. Mach einfach einen Screenshot.'}};
+
+function all(){renderStats();renderList();syncPick()}
+resetForm();sizeCanvas();all();loop();boot();
+document.fonts&&document.fonts.load('900 100px Archivo').then(()=>{drawOnce();loop()});
+}
+</script>
+</body>
+</html>
