@@ -45,3 +45,16 @@
   nötig) den Nutzer fragen, ob er ihn selbst setzen will; ohne laufen News und Kurse trotzdem.
 - Die Python-Tools werden aus dem Projektordner gestartet, z. B.
   `python3 .claude/skills/trader-news/news.py --tickers TSLA --hours 12`.
+
+## Trade-Tagebuch (Webseite für den Nutzer)
+- Artifact-Slug `112f0fa9-0fb0-4b53-baf1-8e0b92b334f6`, Link https://claude.ai/artifact/385BaRFkPMALRzkPf7iXvu.
+  Quellcode: `tagebuch/index.html` (mit `publish_files` veröffentlichen, `slug` + `base_version` aus `get_artifact`).
+- Design-Wunsch des Nutzers: **clean, nur Schwarz/Weiß/Grau, kleine bewegte Sterne**. Keine bunten Farben,
+  keine Auswahl-Knöpfe für das Karten-Design, keine Beispiel-Trades.
+- Datenbank (mit `db_get` / `db_list` / `db_write`):
+  - `trades/<id>`: `{ticker, date: "YYYY-MM-DD", qty, buy, sell, note, created: <ms>}`.
+    Wenn der Nutzer sagt "trag den Trade ein", hier einen Eintrag anlegen (neue id, z. B. `t` + Zeitstempel).
+  - `plan/today`: der "Zettel" für heute, ganz oben auf der Seite:
+    `{date: "YYYY-MM-DD" (deutsches Datum von heute), ticker, qty, entry, stop, target, flat: "21:55", note}`.
+    Nach `/trader-budget` bzw. wenn du ihm einen Trade vorschlägst, hier reinschreiben. Wird nur am selben Tag angezeigt.
+- Startkapital 5.000 $, Regel max. 50 $ Verlust pro Trade (beides in der Seite fest eingebaut).
